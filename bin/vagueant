@@ -255,6 +255,9 @@ command_init() {
 # Provisioning enables you to run perform installations or configuration
 # once the base lxc has been installed.
 # provision shell "foo.sh"
+# The Puppet provider takes the intial manifest and the modules directory
+# as parameters. Please use absolute paths!
+# provision puppet /puppet/manifests/site.pp /puppet/modules
 EOF
 
 	echo "The vagueant configuration file has been created."
@@ -388,17 +391,12 @@ do_provision() {
 # puppet provision
 do_provision_puppet() {
     manifest="$1"
+    modulepath="$2"
 
     echo "Running puppet provisioner for manifest [$manifest]"
 
-    # create the tmp dir for puppet manifests
-    mkdir -p /var/lib/lxc/"$name"/rootfs/tmp/vagueant-puppet
-
-    # copy the manifest file into the lxc
-    cp "$manifest" /var/lib/lxc/"$name"/rootfs/tmp/vagueant-puppet
-
     # apply the puppet manifest via SSH
-    command_ssh -c "sudo puppet apply --verbose --debug /tmp/vagueant-puppet/$manifest --modulepath /etc/puppet/modules"
+    command_ssh -c "cd $(dirname $manifest); sudo puppet apply --verbose --debug $manifest --modulepath $modulepath"
 }
 
 # shell provision
